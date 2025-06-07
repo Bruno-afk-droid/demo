@@ -1,5 +1,4 @@
-package com.example.demo;
-
+package com;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,8 +7,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
 import org.json.JSONArray;
@@ -19,15 +24,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.model.MovieDBManager;
+
 @SpringBootApplication
 @EnableAsync
-public class DemoApplication {
 
+public class App {
+    
     private static final String API_KEY_omd = "42138832"; // Replace with your OMDB API key
     private static final String BASE_URL_omd = "http://www.omdbapi.com/";
     private static final String BASE_URL_tmdb = "https://api.themoviedb.org/3/";
@@ -39,84 +48,115 @@ public class DemoApplication {
     @Autowired
     private AsyncImageDownloader asyncImageDownloader;
 
+    @Autowired
+    @Lazy
+    private MovieDBManager dbManager;
+
     public static void main(String[] args) throws BeansException, Exception {
-        SpringApplication.run(DemoApplication.class, args).getBean(DemoApplication.class).run();
+        SpringApplication.run(App.class, args).getBean(App.class).run();
     }
 
     public void run() throws Exception {
-        String movieTitle = "Inception";
-
-        // Execute API calls in parallel
-        System.out.println("Scheduling OMDB API call at: " + System.currentTimeMillis());
-        CompletableFuture<String> omdbFuture = movieApiService.getMovieDetails_omd(movieTitle);
-        System.out.println("Scheduling TMDB API call at: " + System.currentTimeMillis());
-        CompletableFuture<String> tmdbFuture = movieApiService.getMovieDetails_tmdb(movieTitle);
-
-        // Wait for both API calls to complete
-        CompletableFuture.allOf(omdbFuture, tmdbFuture).join();
-        System.out.println("Both API calls completed at: " + System.currentTimeMillis());
-
-        // connect and read database
-        String url = "jdbc:mysql://localhost:3306/movies?serverTimezone=UTC";
-        String user = "root";
-        String password = "!Hofm100301";
+        // Prompt user for movie title
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the movie title to download: ");
+        String movieTitle = scanner.nextLine().trim();
 
         
-        MovieDatabaseManager dbManager = new MovieDatabaseManager(url, user, password);
-        dbManager.retrieveMovies();
+        // Check if movie exists in database
+        if (!dbManager.isMovieInDatabase(movieTitle)) {
+            // Execute API calls in parallel
+            System.out.println("Scheduling OMDB API call at: " + System.currentTimeMillis());
+            CompletableFuture<String> omdbFuture = movieApiService.getMovieDetails_omd(movieTitle);
+            System.out.println("Scheduling TMDB API call at: " + System.currentTimeMillis());
+            CompletableFuture<String> tmdbFuture = movieApiService.getMovieDetails_tmdb(movieTitle);
 
-        // Process OMDB response
-        try {
-            String jsonResponseOMD = omdbFuture.get();
-            if (jsonResponseOMD != null) {
-                JSONObject jsonObject = new JSONObject(jsonResponseOMD);
-                System.out.println("OMDB - Title: " + jsonObject.getString("Title"));
-                System.out.println("OMDB - Year: " + jsonObject.getString("Year"));
-                System.out.println("OMDB - Director: " + jsonObject.getString("Director"));
-                System.out.println("OMDB - Genre: " + jsonObject.getString("Genre"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            // Wait for both API calls to complete
+            CompletableFuture.allOf(omdbFuture, tmdbFuture).join();
+            System.out.println("Both API calls completed at: " + System.currentTimeMillis());
 
-        // Process TMDB response and download images in parallel
-        try {
-            String jsonResponseTMDB = tmdbFuture.get();
-            if (jsonResponseTMDB != null) {
-                JSONObject jsonObject = new JSONObject(jsonResponseTMDB);
-                JSONObject item = jsonObject.getJSONArray("results").getJSONObject(0);
-                int movieId = item.getInt("id");
+            // Process OMDB response and insert into database
+            try {
+                String jsonResponseOMD = omdbFuture.get();
+                if (jsonResponseOMD != null) {
+                    JSONObject jsonObject = new JSONObject(jsonResponseOMD);
+                    if (!jsonObject.has("Error")) {
+                        String title = jsonObject.getString("Title");
+                        int year = Integer.parseInt(jsonObject.getString("Year"));
+                        String director = jsonObject.getString("Director");
+                        String genre = jsonObject.getString("Genre");
 
-                // Get movie images
-                String imageResponse = movieApiService.getMovieImages_tmdb(movieId).get();
-                JSONArray images = new JSONObject(imageResponse).getJSONArray("backdrops");
+                        System.out.println("OMDB - Title: " + title);
+                        System.out.println("OMDB - Year: " + year);
+                        System.out.println("OMDB - Director: " + director);
+                        System.out.println("OMDB - Genre: " + genre);
 
-                // Download up to 3 images in parallel
-                List<CompletableFuture<Void>> downloadFutures = new LinkedList<>();
-                List<String> imagesToDownload = new LinkedList<>();
-                for (int i = 0; i < Math.min(3, images.length()); i++) {
-                    String imageUrl = "https://image.tmdb.org/t/p/w780/" + images.getJSONObject(i).getString("file_path");
-                    imagesToDownload.add(imageUrl);
-                    String filePath = "C:\\Development\\OOP3\\frameWork\\demo\\demo\\DownloadedImages\\"
-                            + item.getString("title").replace(" ", "_") + "_image" + (i + 1) + ".jpg";
-                    System.out.println("Scheduling download for: " + imageUrl + " at " + System.currentTimeMillis());
-                    downloadFutures.add(asyncImageDownloader.downloadImage(imageUrl, filePath));
+                        // Process TMDB response and download images in parallel
+                        String jsonResponseTMDB = tmdbFuture.get();
+                        if (jsonResponseTMDB != null) {
+                            JSONObject tmdbJson = new JSONObject(jsonResponseTMDB);
+                            if (tmdbJson.getJSONArray("results").length() > 0) {
+                                JSONObject item = tmdbJson.getJSONArray("results").getJSONObject(0);
+                                int movieId = item.getInt("id");
+
+                                // Get movie images
+                                String imageResponse = movieApiService.getMovieImages_tmdb(movieId).get();
+                                JSONArray images = new JSONObject(imageResponse).getJSONArray("backdrops");
+
+                                // Download up to 3 images in parallel
+                                List<CompletableFuture<Void>> downloadFutures = new LinkedList<>();
+                                List<String> imagesToDownload = new LinkedList<>();
+                                for (int i = 0; i < Math.min(3, images.length()); i++) {
+                                    String imageUrl = "https://image.tmdb.org/t/p/w780/" + images.getJSONObject(i).getString("file_path");
+                                    imagesToDownload.add(imageUrl);
+                                    String filePath = "C:\\Development\\OOP3\\frameWork\\demo\\demo\\DownloadedImages\\"
+                                            + item.getString("title").replace(" ", "_") + "_image" + (i + 1) + ".jpg";
+                                    System.out.println("Scheduling download for: " + imageUrl + " at " + System.currentTimeMillis());
+                                    downloadFutures.add(asyncImageDownloader.downloadImage(imageUrl, filePath));
+                                }
+
+                                // Wait for all image downloads to complete
+                                CompletableFuture.allOf(downloadFutures.toArray(new CompletableFuture[0])).join();
+                                System.out.println("All downloads completed at: " + System.currentTimeMillis());
+
+                                // Insert movie into database
+                                dbManager.insertMovie(
+                                    title,
+                                    year,
+                                    director,
+                                    genre,
+                                    "[]", // Empty similar movies
+                                    new JSONArray(imagesToDownload).toString(),
+                                    false,
+                                    1
+                                );
+
+                                System.out.println("TMDB - ID: " + item.getInt("id"));
+                                System.out.println("TMDB - Images: " + imagesToDownload);
+                                System.out.println("TMDB - Title: " + item.getString("title"));
+                                System.out.println("TMDB - Release Date: " + item.getString("release_date"));
+                                System.out.println("TMDB - Overview: " + item.getString("overview"));
+                            } else {
+                                System.out.println("TMDB: No results found for " + movieTitle);
+                            }
+                        }
+                    } else {
+                        System.out.println("OMDB: " + jsonObject.getString("Error"));
+                    }
                 }
-
-                // Wait for all image downloads to complete
-                CompletableFuture.allOf(downloadFutures.toArray(new CompletableFuture[0])).join();
-                System.out.println("All downloads completed at: " + System.currentTimeMillis());
-
-                System.out.println("TMDB - ID: " + item.getInt("id"));
-                System.out.println("TMDB - Images: " + imagesToDownload);
-                System.out.println("TMDB - Title: " + item.getString("title"));
-                System.out.println("TMDB - Release Date: " + item.getString("release_date"));
-                System.out.println("TMDB - Overview: " + item.getString("overview"));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            System.out.println("Movie '" + movieTitle + "' already exists in the database.");
         }
+
+        // Retrieve and display all movies
+        dbManager.retrieveMovies();
+        scanner.close();
     }
+
+ 
 
     @Bean
     public ThreadPoolTaskExecutor taskExecutor() {
@@ -227,5 +267,12 @@ public class DemoApplication {
             }
         }
     }
-}
 
+    @Bean
+    public MovieDBManager movieDBManager() {
+        String url = "jdbc:mysql://localhost:3306/movies?serverTimezone=UTC";
+        String user = "root";
+        String password = "!Hofm100301";
+        return new MovieDBManager(url, user, password);
+    }
+}

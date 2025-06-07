@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.model;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,15 +7,34 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class MovieDatabaseManager {
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class MovieDBManager {
     private final String url;
     private final String user;
     private final String password;
 
-    public MovieDatabaseManager(String url, String user, String password) {
+    public MovieDBManager(String url, String user, String password) {
         this.url = url;
         this.user = user;
         this.password = password;
+    }
+
+    // Check if movie exists in database
+    public boolean isMovieInDatabase(String title) {
+        String sql = "SELECT COUNT(*) FROM movies WHERE title = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, title);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     // CREATE: Insert new movie into the database
@@ -94,5 +113,5 @@ public class MovieDatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
+    } 
 }
