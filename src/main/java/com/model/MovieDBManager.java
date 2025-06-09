@@ -6,6 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Repository;
 
@@ -61,25 +65,55 @@ public class MovieDBManager {
     }
 
     // READ: Retrieve all movies from the database
-    public void retrieveMovies() {
+    public List<String> retrieveMovies(int page, int pageSize) {
         String sql = "SELECT * FROM movies";
+        List<String> results = new ArrayList<>();
+
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-
+            results = new ArrayList<>();
             while (rs.next()) {
                 int columnCount = rs.getMetaData().getColumnCount();
                 for (int i = 1; i <= columnCount; i++) {
                     String columnName = rs.getMetaData().getColumnName(i);
                     String columnValue = rs.getString(i);
                     System.out.println(columnName + ": " + columnValue);
+                   
+
                 }
                 System.out.println("----------------------");
+                
+                results.add(rs.getString("title"));
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+         // Use streams for pagination
+        List<String> paginatedData;
+
+        while (true) {
+
+            paginatedData =results.stream()
+                    .skip((page - 1) * pageSize)
+                    .limit(pageSize)
+                    .collect(Collectors.toList());
+                    
+            if (paginatedData.isEmpty()) {
+                System.out.println("No more records.");
+                break;
+            }
+
+            System.out.println("Page " + page + ":");
+            paginatedData.forEach(System.out::println);
+
+            page++; // Move to the next page
+        }
+
+
+        return paginatedData;
     }
 
     // UPDATE: Update movie rating & watched flag

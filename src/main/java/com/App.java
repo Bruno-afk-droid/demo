@@ -152,7 +152,7 @@ public class App {
         }
 
         // Retrieve and display all movies
-        dbManager.retrieveMovies();
+        dbManager.retrieveMovies(1,1);
         scanner.close();
     }
 
