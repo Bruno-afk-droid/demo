@@ -93,8 +93,9 @@ public class MovieDBManager {
 
          // Use streams for pagination
         List<String> paginatedData;
-
-        while (true) {
+        List<String> result = new ArrayList<String>();
+        
+        /*while (true) {
 
             paginatedData =results.stream()
                     .skip((page - 1) * pageSize)
@@ -107,13 +108,19 @@ public class MovieDBManager {
             }
 
             System.out.println("Page " + page + ":");
-            paginatedData.forEach(System.out::println);
+            for (String item : paginatedData) {
+                result.add(item);
+                System.out.println(item);
+            }
+            
 
             page++; // Move to the next page
-        }
+        }*/
 
-
-        return paginatedData;
+        return results.stream()
+                    .skip((page - 1) * pageSize)
+                    .limit(pageSize)
+                    .collect(Collectors.toList());
     }
 
     // UPDATE: Update movie rating & watched flag

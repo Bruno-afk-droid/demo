@@ -85,6 +85,7 @@ public class App {
                         int year = Integer.parseInt(jsonObject.getString("Year"));
                         String director = jsonObject.getString("Director");
                         String genre = jsonObject.getString("Genre");
+                        int metaScore = jsonObject.getInt("Metascore");
 
                         System.out.println("OMDB - Title: " + title);
                         System.out.println("OMDB - Year: " + year);
@@ -128,7 +129,7 @@ public class App {
                                     "[]", // Empty similar movies
                                     new JSONArray(imagesToDownload).toString(),
                                     false,
-                                    1
+                                    (int)(1+(Math.floor((double)((double)metaScore/100)*4)))
                                 );
 
                                 System.out.println("TMDB - ID: " + item.getInt("id"));

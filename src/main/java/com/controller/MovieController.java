@@ -16,7 +16,7 @@ public class MovieController {
     private MovieService movieService;
 
     @GetMapping
-    public List<String> getPaginatedMovies(@RequestParam(defaultValue = "0") int page, 
+    public List<String> getPaginatedMovies(@RequestParam(defaultValue = "1") int page, 
                                           @RequestParam(defaultValue = "5") int size) {
         return movieService.getMovies(page, size);
     }
