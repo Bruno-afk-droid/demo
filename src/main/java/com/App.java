@@ -63,11 +63,12 @@ public class App {
         String movieTitle = scanner.nextLine().trim();
 
         
-        // Check if movie exists in database
+        // Check if movie exists in OMDB and TMDB database
         if (!dbManager.isMovieInDatabase(movieTitle)) {
             // Execute API calls in parallel
             System.out.println("Scheduling OMDB API call at: " + System.currentTimeMillis());
             CompletableFuture<String> omdbFuture = movieApiService.getMovieDetails_omd(movieTitle);
+
             System.out.println("Scheduling TMDB API call at: " + System.currentTimeMillis());
             CompletableFuture<String> tmdbFuture = movieApiService.getMovieDetails_tmdb(movieTitle);
 

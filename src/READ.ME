@@ -1,0 +1,82 @@
+# Movie Database Spring Boot Application
+
+This project is a Spring Boot application for managing a movie database. It integrates with the OMDB and TMDB APIs to fetch movie details and images, downloads images asynchronously, and stores movie data in a MySQL database. The application also provides a REST API for paginated retrieval of movies.
+
+## Features
+
+- Fetches movie details from OMDB and TMDB APIs
+- Downloads up to 3 images per movie asynchronously
+- Stores movie information and image paths in a MySQL database
+- REST API to retrieve movies with pagination
+- Uses Spring Boot, Spring Data JPA, and asynchronous processing
+
+## Project Structure
+
+- `src/main/java/com/` - Main application code
+  - `App.java` - Main entry point, API integration, and async logic
+  - `controller/MovieController.java` - REST API controller
+  - `service/MovieService.java` - Service layer for movie operations
+  - `model/MovieDBManager.java` - Database access and management
+- `src/main/resources/application.properties` - Spring Boot configuration
+- `DownloadedImages/` - Folder where downloaded images are saved
+- `pom.xml` - Maven project configuration
+
+## Prerequisites
+
+- Java 21
+- Maven
+- MySQL server running on `localhost:3306` with a database named `movies`
+- OMDB and TMDB API keys (already included in code, but you may want to use your own)
+
+## Setup
+
+1. **Clone the repository**
+
+2. **Configure MySQL**
+   - Create a database named `movies`.
+   - Update the MySQL username and password in [`App.java`](src/main/java/com/App.java) if needed.
+
+3. **Create the `movies` table**
+   ```sql
+   CREATE TABLE movies (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     title VARCHAR(255),
+     year INT,
+     director VARCHAR(255),
+     genre VARCHAR(255),
+     similar_movies TEXT,
+     image_paths TEXT,
+     watched BOOLEAN,
+     rating INT
+   );
+   ```
+
+4. **Build and run the application**
+   ```sh
+   ./mvnw spring-boot:run
+   ```
+
+5. **Usage**
+   - On startup, the application will prompt for a movie title in the console.
+   - It will fetch details and images, store them in the database, and download images to the `DownloadedImages/` folder.
+   - Access the REST API at:  
+     ```
+     GET http://localhost:8080/movies?page=1&size=5
+     ```
+
+## REST API
+
+- **Get paginated movies**
+  ```
+  GET /movies?page={page}&size={size}
+  ```
+  Returns a list of movie titles for the specified page and size.
+
+## Notes
+
+- Images are saved in the `DownloadedImages/` directory with filenames based on the movie title.
+- The application uses asynchronous processing for API calls and image downloads for better performance.
+
+## License
+
+This project is licensed under the Apache License 2.0.

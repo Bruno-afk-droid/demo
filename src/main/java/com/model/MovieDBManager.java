@@ -29,7 +29,7 @@ public class MovieDBManager {
     public boolean isMovieInDatabase(String title) {
         String sql = "SELECT COUNT(*) FROM movies WHERE title = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, title);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -42,7 +42,7 @@ public class MovieDBManager {
     }
 
     // CREATE: Insert new movie into the database
-    public void insertMovie(String title, int year, String director, String genre, String similarMovies, String imagePaths, boolean watched, int rating) {
+    public boolean insertMovie(String title, int year, String director, String genre, String similarMovies, String imagePaths, boolean watched, int rating) {
         String sql = "INSERT INTO movies (title, year, director, genre, similar_movies, image_paths, watched, rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -58,9 +58,10 @@ public class MovieDBManager {
             
             pstmt.executeUpdate();
             System.out.println("Movie inserted successfully!");
-
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -124,35 +125,39 @@ public class MovieDBManager {
     }
 
     // UPDATE: Update movie rating & watched flag
-    public void updateMovie(int id, boolean watched, int rating) {
-        String sql = "UPDATE movies SET watched = ?, rating = ? WHERE id = ?";
+    public boolean updateMovie(String title, boolean watched, int rating) {
+        String sql = "UPDATE movies SET watched = ?, rating = ? WHERE title = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setBoolean(1, watched);
             pstmt.setInt(2, rating);
-            pstmt.setInt(3, id);
+            pstmt.setString(3, title);
 
             pstmt.executeUpdate();
             System.out.println("Movie updated successfully!");
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     // DELETE: Remove a movie from the database
-    public void deleteMovie(int id) {
-        String sql = "DELETE FROM movies WHERE id = ?";
+    public boolean deleteMovie(String title) {
+        String sql = "DELETE FROM movies WHERE title = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, id);
+            pstmt.setString(1, title);
             pstmt.executeUpdate();
             System.out.println("Movie deleted successfully!");
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     } 
 }

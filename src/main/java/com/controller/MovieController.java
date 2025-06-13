@@ -20,4 +20,23 @@ public class MovieController {
                                           @RequestParam(defaultValue = "5") int size) {
         return movieService.getMovies(page, size);
     }
+
+    // Update an existing movie
+    @PutMapping("/{title}")
+    public Boolean updateMovie(@PathVariable String title, @RequestBody int rating, 
+                              @RequestBody boolean watched) {
+        boolean success = movieService.updateMovie(
+            title,
+            watched,
+            rating
+        );
+        return success;
+    }
+
+    // Delete a movie by name
+    @DeleteMapping("/{name}")
+    public boolean deleteMovie(@PathVariable String name) {
+        boolean success = movieService.deleteMovie(name);
+        return success;
+    }
 }
