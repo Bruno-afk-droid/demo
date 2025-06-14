@@ -9,7 +9,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.stereotype.Repository;
 
@@ -91,33 +90,10 @@ public class MovieDBManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-         // Use streams for pagination
-        List<String> paginatedData;
-        List<String> result = new ArrayList<String>();
-        
-        /*while (true) {
-
-            paginatedData =results.stream()
-                    .skip((page - 1) * pageSize)
-                    .limit(pageSize)
-                    .collect(Collectors.toList());
-                    
-            if (paginatedData.isEmpty()) {
-                System.out.println("No more records.");
-                break;
-            }
-
-            System.out.println("Page " + page + ":");
-            for (String item : paginatedData) {
-                result.add(item);
-                System.out.println(item);
-            }
-            
-
-            page++; // Move to the next page
-        }*/
-
+        // Pagination logic
+        if (page <= 0 || pageSize <= 0) {
+            throw new IllegalArgumentException("Page and page size must be greater than 0");
+        }
         return results.stream()
                     .skip((page - 1) * pageSize)
                     .limit(pageSize)

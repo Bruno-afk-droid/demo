@@ -1,14 +1,16 @@
 # Movie Database Spring Boot Application
 
-This project is a Spring Boot application for managing a movie database. It integrates with the OMDB and TMDB APIs to fetch movie details and images, downloads images asynchronously, and stores movie data in a MySQL database. The application also provides a REST API for paginated retrieval of movies.
+This project is a Spring Boot application for managing a movie database. It integrates with the OMDB and TMDB APIs to fetch movie details and images, downloads images asynchronously, and stores movie data in a MySQL database. The application also provides a REST API for paginated retrieval of movies, as well as endpoints to update and delete movies by title.
 
 ## Features
 
 - Fetches movie details from OMDB and TMDB APIs
 - Downloads up to 3 images per movie asynchronously
 - Stores movie information and image paths in a MySQL database
-- REST API to retrieve movies with pagination
+- REST API to retrieve, update, and delete movies
 - Uses Spring Boot, Spring Data JPA, and asynchronous processing
+- Unit and integration tests with H2 in-memory database
+- Code coverage reporting with JaCoCo and VS Code integration
 
 ## Project Structure
 
@@ -20,6 +22,7 @@ This project is a Spring Boot application for managing a movie database. It inte
 - `src/main/resources/application.properties` - Spring Boot configuration
 - `DownloadedImages/` - Folder where downloaded images are saved
 - `pom.xml` - Maven project configuration
+- `src/test/java/` - Unit and integration tests (uses H2 for isolation)
 
 ## Prerequisites
 
@@ -72,10 +75,40 @@ This project is a Spring Boot application for managing a movie database. It inte
   ```
   Returns a list of movie titles for the specified page and size.
 
+- **Update a movie's rating and watched status by title**
+  ```
+  PUT /movies/{title}
+  Body: { "rating": 5, "watched": true }
+  ```
+  Returns `true` if the update was successful.
+
+- **Delete a movie by title**
+  ```
+  DELETE /movies/{title}
+  ```
+  Returns `true` if the deletion was successful.
+
+## Testing
+
+- Unit and integration tests use H2 in-memory database for isolation.
+- To run tests and generate a code coverage report:
+  ```sh
+  ./mvnw test
+  ./mvnw jacoco:report
+  ```
+- The coverage report will be generated at `target/site/jacoco/index.html`.
+
+## Code Coverage in VS Code
+
+- Install the **Coverage Gutters** extension in VS Code.
+- Run your tests and generate a JaCoCo report as above.
+- Open the `jacoco.xml` or `index.html` in `target/site/jacoco/` to view coverage in the browser or use Coverage Gutters to see coverage in the editor.
+
 ## Notes
 
 - Images are saved in the `DownloadedImages/` directory with filenames based on the movie title.
 - The application uses asynchronous processing for API calls and image downloads for better performance.
+- The test suite covers API, database, and async logic.
 
 ## License
 
