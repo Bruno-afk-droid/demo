@@ -1,5 +1,6 @@
 package com.model;
 
+// Import necessary Java and Spring libraries for JDBC and collections
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -12,19 +13,26 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+// Repository class for managing movie database operations
 @Repository
 public class MovieDBManager {
+    // Database connection details
     private final String url;
     private final String user;
     private final String password;
 
+    // Constructor to initialize connection details
     public MovieDBManager(String url, String user, String password) {
         this.url = url;
         this.user = user;
         this.password = password;
     }
 
-    // Check if movie exists in database
+    /**
+     * Checks if a movie with the given title exists in the database.
+     * @param title The movie title to check.
+     * @return true if the movie exists, false otherwise.
+     */
     public boolean isMovieInDatabase(String title) {
         String sql = "SELECT COUNT(*) FROM movies WHERE title = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -40,7 +48,18 @@ public class MovieDBManager {
         return false;
     }
 
-    // CREATE: Insert new movie into the database
+    /**
+     * Inserts a new movie into the database.
+     * @param title Movie title
+     * @param year Release year
+     * @param director Director name
+     * @param genre Movie genre
+     * @param similarMovies JSON string of similar movies
+     * @param imagePaths JSON string of image paths
+     * @param watched Whether the movie has been watched
+     * @param rating Movie rating
+     * @return true if insertion was successful, false otherwise
+     */
     public boolean insertMovie(String title, int year, String director, String genre, String similarMovies, String imagePaths, boolean watched, int rating) {
         String sql = "INSERT INTO movies (title, year, director, genre, similar_movies, image_paths, watched, rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -64,7 +83,12 @@ public class MovieDBManager {
         }
     }
 
-    // READ: Retrieve all movies from the database
+    /**
+     * Retrieves a paginated list of movie titles from the database.
+     * @param page The page number (1-based)
+     * @param pageSize The number of movies per page
+     * @return List of movie titles for the requested page
+     */
     public List<String> retrieveMovies(int page, int pageSize) {
         String sql = "SELECT * FROM movies";
         List<String> results = new ArrayList<>();
@@ -74,23 +98,22 @@ public class MovieDBManager {
              ResultSet rs = stmt.executeQuery(sql)) {
             results = new ArrayList<>();
             while (rs.next()) {
+                // Print all columns for debugging
                 int columnCount = rs.getMetaData().getColumnCount();
                 for (int i = 1; i <= columnCount; i++) {
                     String columnName = rs.getMetaData().getColumnName(i);
                     String columnValue = rs.getString(i);
                     System.out.println(columnName + ": " + columnValue);
-                   
-
                 }
                 System.out.println("----------------------");
-                
+                // Add movie title to results
                 results.add(rs.getString("title"));
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // Pagination logic
+        // Pagination logic: skip and limit results
         if (page <= 0 || pageSize <= 0) {
             throw new IllegalArgumentException("Page and page size must be greater than 0");
         }
@@ -100,7 +123,13 @@ public class MovieDBManager {
                     .collect(Collectors.toList());
     }
 
-    // UPDATE: Update movie rating & watched flag
+    /**
+     * Updates the watched status and rating of a movie by title.
+     * @param title Movie title
+     * @param watched New watched status
+     * @param rating New rating
+     * @return true if update was successful, false otherwise
+     */
     public boolean updateMovie(String title, boolean watched, int rating) {
         String sql = "UPDATE movies SET watched = ?, rating = ? WHERE title = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -121,7 +150,11 @@ public class MovieDBManager {
         }
     }
 
-    // DELETE: Remove a movie from the database
+    /**
+     * Deletes a movie from the database by title.
+     * @param title Movie title
+     * @return true if deletion was successful, false otherwise
+     */
     public boolean deleteMovie(String title) {
         String sql = "DELETE FROM movies WHERE title = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);

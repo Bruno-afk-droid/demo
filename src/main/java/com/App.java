@@ -1,4 +1,5 @@
 package com;
+// Import necessary Java and Spring libraries for HTTP, concurrency, JSON, and Spring Boot
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,40 +28,44 @@ import org.springframework.stereotype.Service;
 
 import com.model.MovieDBManager;
 
+// Main Spring Boot application class
 @SpringBootApplication
-@EnableAsync
-
+@EnableAsync // Enable asynchronous method execution
 public class App {
-    
+    // API keys and base URLs for OMDB and TMDB
     private static final String API_KEY_omd = "42138832"; // Replace with your OMDB API key
     private static final String BASE_URL_omd = "http://www.omdbapi.com/";
     private static final String BASE_URL_tmdb = "https://api.themoviedb.org/3/";
     private static final String API_KEY_tmdb = "2af894f45496ead36ca797704fb707b0";
 
+    // Inject the MovieApiService for API calls
     @Autowired
     private MovieApiService movieApiService;
 
+    // Inject the AsyncImageDownloader for downloading images
     @Autowired
     private AsyncImageDownloader asyncImageDownloader;
 
+    // Inject the MovieDBManager for database operations (lazily to avoid circular dependencies)
     @Autowired
     @Lazy
     private MovieDBManager dbManager;
 
+    // Main entry point for the Spring Boot application
     public static void main(String[] args) throws BeansException, Exception {
         SpringApplication.run(App.class, args).getBean(App.class).run();
     }
 
+    // Main logic for interacting with the user and orchestrating API/database actions
     public void run() throws Exception {
         // Prompt user for movie title
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the movie title to download: ");
         String movieTitle = scanner.nextLine().trim();
 
-        
-        // Check if movie exists in OMDB and TMDB database
+        // Check if movie exists in the database
         if (!dbManager.isMovieInDatabase(movieTitle)) {
-            // Execute API calls in parallel
+            // Execute OMDB and TMDB API calls in parallel using CompletableFuture
             System.out.println("Scheduling OMDB API call at: " + System.currentTimeMillis());
             CompletableFuture<String> omdbFuture = movieApiService.getMovieDetails_omd(movieTitle);
 
@@ -77,6 +82,7 @@ public class App {
                 if (jsonResponseOMD != null) {
                     JSONObject jsonObject = new JSONObject(jsonResponseOMD);
                     if (!jsonObject.has("Error")) {
+                        // Extract movie details from OMDB response
                         String title = jsonObject.getString("Title");
                         int year = Integer.parseInt(jsonObject.getString("Year"));
                         String director = jsonObject.getString("Director");
@@ -96,7 +102,7 @@ public class App {
                                 JSONObject item = tmdbJson.getJSONArray("results").getJSONObject(0);
                                 int movieId = item.getInt("id");
 
-                                // Get movie images
+                                // Get movie images from TMDB
                                 String imageResponse = movieApiService.getMovieImages_tmdb(movieId).get();
                                 JSONArray images = new JSONObject(imageResponse).getJSONArray("backdrops");
 
@@ -116,7 +122,7 @@ public class App {
                                 CompletableFuture.allOf(downloadFutures.toArray(new CompletableFuture[0])).join();
                                 System.out.println("All downloads completed at: " + System.currentTimeMillis());
 
-                                // Insert movie into database
+                                // Insert movie into database with downloaded image paths
                                 dbManager.insertMovie(
                                     title,
                                     year,
@@ -148,13 +154,12 @@ public class App {
             System.out.println("Movie '" + movieTitle + "' already exists in the database.");
         }
 
-        // Retrieve and display all movies
+        // Retrieve and display all movies (for demonstration)
         dbManager.retrieveMovies(1,1);
         scanner.close();
     }
 
- 
-
+    // Configure a thread pool for async operations (API calls, downloads)
     @Bean
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -166,8 +171,10 @@ public class App {
         return executor;
     }
 
+    // Service for making API calls to OMDB and TMDB
     @Service
     public static class MovieApiService {
+        // Asynchronously fetch movie details from OMDB
         @Async("taskExecutor")
         public CompletableFuture<String> getMovieDetails_omd(String title) {
             try {
@@ -193,6 +200,7 @@ public class App {
             }
         }
 
+        // Asynchronously fetch movie details from TMDB
         @Async("taskExecutor")
         public CompletableFuture<String> getMovieDetails_tmdb(String title) {
             try {
@@ -218,6 +226,7 @@ public class App {
             }
         }
 
+        // Asynchronously fetch movie images from TMDB by movie ID
         @Async("taskExecutor")
         public CompletableFuture<String> getMovieImages_tmdb(int id) {
             try {
@@ -244,6 +253,7 @@ public class App {
         }
     }
 
+    // Service for asynchronously downloading images from URLs
     @Service
     public static class AsyncImageDownloader {
         @Async("taskExecutor")
@@ -265,6 +275,7 @@ public class App {
         }
     }
 
+    // Bean for creating the MovieDBManager with MySQL connection details
     @Bean
     public MovieDBManager movieDBManager() {
         String url = "jdbc:mysql://localhost:3306/movies?serverTimezone=UTC";
