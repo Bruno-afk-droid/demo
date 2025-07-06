@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.model.MovieDBManager;
+import com.repository.MovieDBManager;
 
 // Service class that acts as an intermediary between controllers and the MovieDBManager (database layer)
 @Service

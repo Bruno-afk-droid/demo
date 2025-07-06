@@ -1,4 +1,4 @@
-package com.model;
+package com.repository;
 
 // Import necessary Java and Spring libraries for JDBC and collections
 import java.sql.Connection;

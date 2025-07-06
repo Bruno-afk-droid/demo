@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 public class MovieApiServiceTest {
 
     @InjectMocks
-    private App.MovieApiService movieApiService = new App.MovieApiService();
+    private com.service.MovieApiService movieApiService = new com.service.MovieApiService();
 
     @Test
     void testGetMovieDetailsOmdb_Success() throws Exception {
