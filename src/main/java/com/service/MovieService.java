@@ -6,7 +6,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.model.Movie;
 import com.repository.MovieDBManager;
+import com.repository.MovieRepository;
 
 // Service class that acts as an intermediary between controllers and the MovieDBManager (database layer)
 @Service
@@ -14,6 +16,9 @@ public class MovieService {
     // Inject the MovieDBManager for database operations
     @Autowired
     private MovieDBManager movieDBManager;
+
+    @Autowired
+    private MovieRepository movieRepository;
 
     /**
      * Retrieves a paginated list of movie titles.
@@ -58,6 +63,18 @@ public class MovieService {
      * @return true if deletion was successful, false otherwise
      */
     public boolean deleteMovie(String title) {
-        return movieDBManager.deleteMovie(title);
+        if (movieRepository.existsByTitle(title)) {
+            movieRepository.deleteByTitle(title);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isMovieInDatabase(String title) {
+        return movieRepository.existsByTitle(title);
+    }
+
+    public Movie insertMovie(Movie movie) {
+        return movieRepository.save(movie);
     }
 }
