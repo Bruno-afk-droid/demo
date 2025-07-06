@@ -3,6 +3,8 @@ package com;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestTemplate;
+
 import com.repository.MovieDBManager;
 
 @Configuration
@@ -26,5 +28,11 @@ public class AppConfig {
         String user = "root";
         String password = "!Hofm100301";
         return new MovieDBManager(url, user, password);
+    }
+
+    // Bean for RestTemplate to be used with MovieApiService
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }

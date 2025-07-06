@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.dto.OmdbMovieResponse;
+
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -29,9 +31,9 @@ public class MovieApiServiceTest {
             lenient().when(connectionMock.getResponseCode()).thenReturn(200);
             lenient().when(connectionMock.getRequestMethod()).thenReturn("GET");
         })) {
-            CompletableFuture<String> result = movieApiService.getMovieDetails_omd("Test Movie");
+            CompletableFuture<OmdbMovieResponse> result = movieApiService.getMovieDetails_omd("Test Movie");
             assertNotNull(result.get());
-            assertTrue(result.get().contains("Test Movie"));
+            assertEquals("Test Movie", result.get().getTitle());
         }
     }
 
@@ -40,7 +42,7 @@ public class MovieApiServiceTest {
         try (var urlConstructor = mockConstruction(URL.class, (mock, context) -> {
             when(mock.openConnection()).thenThrow(new java.io.IOException("Connection failed"));
         })) {
-            CompletableFuture<String> result = movieApiService.getMovieDetails_omd("Test Movie");
+            CompletableFuture<OmdbMovieResponse> result = movieApiService.getMovieDetails_omd("Test Movie");
             assertNull(result.get());
         }
     }

@@ -3,7 +3,14 @@ package com.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.service.MovieService;
 
@@ -20,22 +27,26 @@ public class MovieController {
         return movieService.getMovies(page, size);
     }
 
-    // Update an existing movie
+    // Update an existing movie (by title in path, fields in body)
     @PutMapping("/{title}")
-    public Boolean updateMovie(@PathVariable String title, @RequestBody int rating, 
-                              @RequestBody boolean watched) {
+    public Boolean updateMovie(@PathVariable String title, @RequestBody com.model.Movie movie) {
         boolean success = movieService.updateMovie(
             title,
-            watched,
-            rating
+            movie.isWatched(),
+            movie.getRating()
         );
         return success;
     }
 
-    // Delete a movie by name
-    @DeleteMapping("/{name}")
-    public boolean deleteMovie(@PathVariable String name) {
-        boolean success = movieService.deleteMovie(name);
-        return success;
+    // Delete a movie by title in path (for RESTful style)
+    @DeleteMapping("/{title}")
+    public boolean deleteMovieByTitle(@PathVariable String title) {
+        return movieService.deleteMovie(title);
+    }
+
+    // Delete a movie by request body (for flexibility)
+    @DeleteMapping
+    public boolean deleteMovie(@RequestBody com.model.Movie movie) {
+        return movieService.deleteMovie(movie.getTitle());
     }
 }
