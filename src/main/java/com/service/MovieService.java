@@ -2,6 +2,7 @@ package com.service;
 
 // Import necessary Java and Spring libraries
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,10 @@ public class MovieService {
 
     public boolean isMovieInDatabase(String title) {
         return movieRepository.existsByTitle(title);
+    }
+
+    public Optional<Movie> findMovieByTitle(String title) {
+        return movieRepository.findByTitle(title);
     }
 
     public Movie insertMovie(Movie movie) {
