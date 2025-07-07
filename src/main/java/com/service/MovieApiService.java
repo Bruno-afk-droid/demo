@@ -1,7 +1,8 @@
 package com.service;
 
-import com.dto.OmdbMovieResponse;
-import com.dto.TmdbMovieResponse;
+import com.model.OmdbMovieResponse;
+import com.model.TmdbMovieResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

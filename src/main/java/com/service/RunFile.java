@@ -43,10 +43,10 @@ public class RunFile {
         if (!dbManager.isMovieInDatabase(movieTitle)) {
             // Execute OMDB and TMDB API calls in parallel using CompletableFuture
             System.out.println("Scheduling OMDB API call at: " + System.currentTimeMillis());
-            CompletableFuture<com.dto.OmdbMovieResponse> omdbFuture = movieApiService.getMovieDetails_omd(movieTitle);
+            CompletableFuture<com.model.OmdbMovieResponse> omdbFuture = movieApiService.getMovieDetails_omd(movieTitle);
 
             System.out.println("Scheduling TMDB API call at: " + System.currentTimeMillis());
-            CompletableFuture<com.dto.TmdbMovieResponse> tmdbFuture = movieApiService.getMovieDetails_tmdb(movieTitle);
+            CompletableFuture<com.model.TmdbMovieResponse> tmdbFuture = movieApiService.getMovieDetails_tmdb(movieTitle);
 
             // Wait for both API calls to complete
             CompletableFuture.allOf(omdbFuture, tmdbFuture).join();
@@ -54,7 +54,7 @@ public class RunFile {
 
             // Process OMDB response and insert into database
             try {
-                com.dto.OmdbMovieResponse omdbResponse = omdbFuture.get();
+                com.model.OmdbMovieResponse omdbResponse = omdbFuture.get();
                 if (omdbResponse != null && omdbResponse.getError() == null) {
                     // Extract movie details from OMDB response
                     String title = omdbResponse.getTitle();
@@ -87,9 +87,9 @@ public class RunFile {
                     System.out.println("OMDB - Genre: " + genre);
 
                     // Process TMDB response and download images in parallel
-                    com.dto.TmdbMovieResponse tmdbResponse = tmdbFuture.get();
+                    com.model.TmdbMovieResponse tmdbResponse = tmdbFuture.get();
                     if (tmdbResponse != null && tmdbResponse.getResults() != null && !tmdbResponse.getResults().isEmpty()) {
-                        com.dto.TmdbMovieResponse.TmdbResult item = tmdbResponse.getResults().get(0);
+                        com.model.TmdbMovieResponse.TmdbResult item = tmdbResponse.getResults().get(0);
                         int movieId = item.getId();
 
                         // Get movie images from TMDB

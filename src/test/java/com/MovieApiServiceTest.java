@@ -5,7 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.dto.OmdbMovieResponse;
+import com.model.OmdbMovieResponse;
 
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
