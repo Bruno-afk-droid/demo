@@ -1,22 +1,25 @@
 package com.model;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.repository.MovieDBManager;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.anyString;
+import org.mockito.InjectMocks;
+import org.mockito.MockedStatic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.repository.MovieDBManager;
 
 @ExtendWith(MockitoExtension.class)
 public class MovieDBManagerMockTest {
@@ -92,7 +95,16 @@ public class MovieDBManagerMockTest {
             when(preparedStatement.executeUpdate()).thenReturn(1);
 
             // Test
-            movieDBManager.insertMovie("Test Movie", 2020, "Test Director", "Action", "[]", "[\"image1.jpg\"]", false, 4);
+            com.model.Movie movie = new com.model.Movie();
+            movie.setTitle("Test Movie");
+            movie.setYear(2020);
+            movie.setDirector("Test Director");
+            movie.setGenre("Action");
+            movie.setSimilarMovies("[]");
+            movie.setImagePaths("[\"image1.jpg\"]");
+            movie.setWatched(false);
+            movie.setRating(4);
+            movieDBManager.insertMovie(movie);
 
             // Verify interactions
             verify(preparedStatement).setString(1, "Test Movie");

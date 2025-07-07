@@ -49,31 +49,22 @@ public class MovieDBManager {
     }
 
     /**
-     * Inserts a new movie into the database.
-     * @param title Movie title
-     * @param year Release year
-     * @param director Director name
-     * @param genre Movie genre
-     * @param similarMovies JSON string of similar movies
-     * @param imagePaths JSON string of image paths
-     * @param watched Whether the movie has been watched
-     * @param rating Movie rating
+     * Inserts a new movie into the database using a Movie object.
+     * @param movie The Movie object to insert
      * @return true if insertion was successful, false otherwise
      */
-    public boolean insertMovie(String title, int year, String director, String genre, String similarMovies, String imagePaths, boolean watched, int rating) {
+    public boolean insertMovie(com.model.Movie movie) {
         String sql = "INSERT INTO movies (title, year, director, genre, similar_movies, image_paths, watched, rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setString(1, title);
-            pstmt.setInt(2, year);
-            pstmt.setString(3, director);
-            pstmt.setString(4, genre);
-            pstmt.setString(5, similarMovies);  // Assuming JSON format
-            pstmt.setString(6, imagePaths);  // Assuming JSON format
-            pstmt.setBoolean(7, watched);
-            pstmt.setInt(8, rating);
-            
+            pstmt.setString(1, movie.getTitle());
+            pstmt.setInt(2, movie.getYear());
+            pstmt.setString(3, movie.getDirector());
+            pstmt.setString(4, movie.getGenre());
+            pstmt.setString(5, movie.getSimilarMovies());
+            pstmt.setString(6, movie.getImagePaths());
+            pstmt.setBoolean(7, movie.isWatched());
+            pstmt.setInt(8, movie.getRating());
             pstmt.executeUpdate();
             System.out.println("Movie inserted successfully!");
             return true;

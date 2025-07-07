@@ -21,6 +21,12 @@ public class MovieController {
     @Autowired
     private MovieService movieService;
 
+    // Insert a new movie directly via POST
+    @org.springframework.web.bind.annotation.PostMapping
+    public boolean insertMovie(@org.springframework.web.bind.annotation.RequestBody com.model.Movie movie) {
+        return movieService.insertMovieDB(movie);
+    }
+
     @GetMapping
     public List<String> getPaginatedMovies(@RequestParam(defaultValue = "1") int page, 
                                           @RequestParam(defaultValue = "5") int size) {

@@ -114,7 +114,7 @@ public class RunFile {
         movie.setImagePaths(new JSONArray(imagesToDownload).toString());
         movie.setWatched(false);
         movie.setRating((int)(1+(Math.floor((double)((double)metaScore/100)*4))));
-        movieService.insertMovie(movie);
+                        movieService.insertMovieDB(movie);
 
         System.out.println("TMDB - ID: " + item.getId());
         System.out.println("TMDB - Images: " + imagesToDownload);

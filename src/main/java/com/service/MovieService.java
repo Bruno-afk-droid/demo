@@ -31,19 +31,12 @@ public class MovieService {
     }
 
     /**
-     * Inserts a new movie into the database.
-     * @param title Movie title
-     * @param year Release year
-     * @param director Director name
-     * @param genre Movie genre
-     * @param similarMovies JSON string of similar movies
-     * @param imagePaths JSON string of image paths
-     * @param watched Whether the movie has been watched
-     * @param rating Movie rating
+     * Inserts a new movie into the database using a Movie object.
+     * @param movie The Movie object to insert
      * @return true if insertion was successful, false otherwise
      */
-    public boolean insertMovie(String title, int year, String director, String genre, String similarMovies, String imagePaths, boolean watched, int rating) {
-        return movieDBManager.insertMovie(title, year, director, genre, similarMovies, imagePaths, watched, rating);
+    public boolean insertMovieDB(Movie movie) {
+        return movieDBManager.insertMovie(movie);
     }
 
     /**
