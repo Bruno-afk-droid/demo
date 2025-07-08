@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.service.MovieService;
+import com.service.RunFile;
 
 @RestController
 @RequestMapping("/movies")
@@ -21,10 +22,19 @@ public class MovieController {
     @Autowired
     private MovieService movieService;
 
+    @Autowired
+    private RunFile runFile;
+
     // Insert a new movie directly via POST
-    @org.springframework.web.bind.annotation.PostMapping
+    /*@org.springframework.web.bind.annotation.PostMapping
     public boolean insertMovie(@org.springframework.web.bind.annotation.RequestBody com.model.Movie movie) {
         return movieService.insertMovieDB(movie);
+    }*/
+
+    @org.springframework.web.bind.annotation.PostMapping("/{title}")
+    public boolean insertMovieByTitle(@PathVariable String title) {
+        
+        return runFile.handleMovieDownload(title);
     }
 
     @GetMapping

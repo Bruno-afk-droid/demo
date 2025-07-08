@@ -1,14 +1,15 @@
 # Movie Database Spring Boot Application
 
-This project is a Spring Boot application for managing a movie database. It integrates with the OMDB and TMDB APIs to fetch movie details and images, downloads images asynchronously, and stores movie data in a MySQL database. The application also provides a REST API for paginated retrieval of movies, as well as endpoints to update and delete movies by title.
+This project is a Spring Boot application for managing a movie database. It integrates with the OMDB and TMDB APIs to fetch movie details and images, downloads images asynchronously, and stores movie data in a MySQL database. The application provides a modern REST API for inserting, retrieving (with pagination), updating, and deleting movies by title. Movie insertion is now supported via HTTP POST with a Movie object or by title, and the codebase uses Spring Data JPA and DTOs for improved maintainability.
 
 ## Features
 
 - Fetches movie details from OMDB and TMDB APIs
 - Downloads up to 3 images per movie asynchronously
 - Stores movie information and image paths in a MySQL database
-- REST API to retrieve, update, and delete movies
-- Uses Spring Boot, Spring Data JPA, and asynchronous processing
+- Modern REST API to insert, retrieve (paginated), update, and delete movies
+- Insert movies via HTTP POST with a Movie object (JSON) or by title
+- Uses Spring Boot, Spring Data JPA, DTOs, and asynchronous processing
 - Unit and integration tests with H2 in-memory database
 - Code coverage reporting with JaCoCo and VS Code integration
 
@@ -16,9 +17,9 @@ This project is a Spring Boot application for managing a movie database. It inte
 
 - `src/main/java/com/` - Main application code
   - `App.java` - Main entry point, API integration, and async logic
-  - `controller/MovieController.java` - REST API controller
+  - `controller/MovieController.java` - REST API controller (handles all REST endpoints)
   - `service/MovieService.java` - Service layer for movie operations
-  - `model/MovieDBManager.java` - Database access and management
+  - `repository/MovieDBManager.java` - Database access and management (now uses object-based inserts)
 - `src/main/resources/application.properties` - Spring Boot configuration
 - `DownloadedImages/` - Folder where downloaded images are saved
 - `pom.xml` - Maven project configuration
@@ -37,7 +38,7 @@ This project is a Spring Boot application for managing a movie database. It inte
 
 2. **Configure MySQL**
    - Create a database named `movies`.
-   - Update the MySQL username and password in [`App.java`](src/main/java/com/App.java) if needed.
+   - Update the MySQL username and password in [`application.properties`](src/main/resources/application.properties) if needed.
 
 3. **Create the `movies` table**
    ```sql
@@ -60,7 +61,7 @@ This project is a Spring Boot application for managing a movie database. It inte
    ```
 
 5. **Usage**
-   - On startup, the application will prompt for a movie title in the console.
+   - On startup, the application can be used via REST API or (optionally) via CLI prompt for a movie title.
    - It will fetch details and images, store them in the database, and download images to the `DownloadedImages/` folder.
    - Access the REST API at:  
      ```
@@ -68,6 +69,27 @@ This project is a Spring Boot application for managing a movie database. It inte
      ```
 
 ## REST API
+
+- **Insert a new movie (by Movie object)**
+  ```
+  POST /movies
+  Content-Type: application/json
+  Body:
+  {
+    "title": "Inception",
+    "director": "Christopher Nolan",
+    "year": 2010,
+    "genre": "Science Fiction"
+    // ...other fields as required by the Movie class
+  }
+  ```
+  Returns `true` if the insert was successful.
+
+- **Insert a new movie (by title only, triggers API fetch and download)**
+  ```
+  POST /movies/{title}
+  ```
+  Returns `true` if the movie was fetched, downloaded, and inserted successfully.
 
 - **Get paginated movies**
   ```
@@ -98,6 +120,28 @@ This project is a Spring Boot application for managing a movie database. It inte
   ```
 - The coverage report will be generated at `target/site/jacoco/index.html`.
 
+## Testing REST Endpoints in VS Code
+
+You can use the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension for VS Code to test endpoints directly from `.http` files. Example:
+
+```
+POST http://localhost:8080/movies
+Content-Type: application/json
+
+{
+  "title": "Inception",
+  "director": "Christopher Nolan",
+  "year": 2010,
+  "genre": "Science Fiction"
+}
+```
+
+Or to insert by title:
+
+```
+POST http://localhost:8080/movies/Inception
+```
+
 ## Code Coverage in VS Code
 
 - Install the **Coverage Gutters** extension in VS Code.
@@ -109,6 +153,7 @@ This project is a Spring Boot application for managing a movie database. It inte
 - Images are saved in the `DownloadedImages/` directory with filenames based on the movie title.
 - The application uses asynchronous processing for API calls and image downloads for better performance.
 - The test suite covers API, database, and async logic.
+- The codebase has been refactored to use object-based inserts, DTOs, and improved RESTful design. Old parameter-based insert methods have been removed.
 
 ## License
 
